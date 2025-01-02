@@ -2,9 +2,10 @@ import pygame
 import sys
 import random
 import arrow
-import levels
 import time
 import os
+from levels import player
+
 
 pygame.init()
 
@@ -92,13 +93,11 @@ def main():
             handle_input(event, pressed_keys)
             if event.type == pygame.KEYDOWN:
                 if event.key in numArray:
-                    number = numArray.index(event.key) -1 
-                    if (number > len( os.listdir('./nummers')) -1 ):
-                        number = 0
-                        
-                    selectedSong = 'nummers/' + os.listdir('./nummers')[number]
-                    levels.bpm = levels.bpmArray[selectedSong]
-                    levels.source = selectedSong
+                    number = numArray.index(event.key) - 1
+                    number %= len(os.listdir('./nummers'))
+
+                    selected_song = f'nummers/{os.listdir("./nummers")[number]}'
+                    player.loadSong(selected_song)
                 if event.key == pygame.K_SPACE and won:
                     playing = True
                     won = False
@@ -107,7 +106,7 @@ def main():
                     arrows = []
                     pressed_keys = []
                     ArrowClass = arrow.Arrow
-                    levels.playMusic()
+                    player.playMusic()
                 if event.key == pygame.K_SPACE and not playing:
                     playing = True
                     won = False
@@ -116,7 +115,7 @@ def main():
                     arrows = []
                     pressed_keys = []  
                     ArrowClass = arrow.Arrow
-                    levels.playMusic()
+                    player.playMusic()
                 if event.key == pygame.K_SPACE and won:
                     playing = True
                     won = False
@@ -125,7 +124,7 @@ def main():
                     arrows = []
                     pressed_keys = []  
                     ArrowClass = arrow.Arrow
-                    levels.playMusic()
+                    player.playMusic()
                 
 
         if not playing:
@@ -134,7 +133,7 @@ def main():
             nummers = os.listdir('./nummers')
             screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
             for i in range(len(nummers)):
-                if ("nummers/"+nummers[i]) == levels.source:
+                if ("nummers/"+nummers[i]) == player.source:
                     text = font.render(f"{i+1}. {nummers[i]}", True, GREEN)
                 else: 
                     text = font.render(f"{i+1}. {nummers[i]}", True, WHITE)
@@ -147,7 +146,7 @@ def main():
             tolerance = 0.01 
             dropTime = 1430 # Het duurt 1.34 sec om te vallen
             songEndBuffer = 3 
-            for sec in levels.beat_times:
+            for sec in player.beat_times:
                 if abs((spawn_timer + dropTime) / 1000 - sec) < tolerance:
                     random.seed(sec) # zorg ervoor dat sequentie van willekeur altijd hetzelfde is bij ieder nummera
                     lane_index = random.randint(0, LANE_COUNT - 1)
@@ -162,7 +161,7 @@ def main():
                             gravity=GLOBAL_GRAVITY,
                             rotation=rotation,
                         ))
-                if levels.beat_times[-1] + songEndBuffer < (spawn_timer + dropTime) / 1000:
+                if player.beat_times[-1] + songEndBuffer < (spawn_timer + dropTime) / 1000:
                     won = True
                     break
            
@@ -209,7 +208,7 @@ def main():
                 screen.fill(BLACK)
                 text = font.render(f"Your score: {score}", True, WHITE)
                 screen.blit(text, (WIDTH // 2 - text.get_width() // 2, (HEIGHT // 2 + text.get_height() // 2) + 100))
-                text = font.render(f"You scored: {round((score)/(len(levels.beat_times)), 1)}%", True, WHITE)
+                text = font.render(f"You scored: {round((score)/(len(player.beat_times)), 1)}%", True, WHITE)
                 screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 + text.get_height() // 2))
                 text = font.render("Press SPACE to play again", True, WHITE)
                 screen.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
